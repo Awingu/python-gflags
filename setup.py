@@ -32,7 +32,7 @@
 from setuptools import setup
 
 setup(name='python-gflags',
-      version='2.0',
+      version='2.0awingu3',
       description='Google Commandline Flags Module',
       license='BSD',
       author='Google Inc. and others',
