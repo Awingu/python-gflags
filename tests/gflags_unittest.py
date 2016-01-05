@@ -34,7 +34,7 @@
 __pychecker__ = "no-local" # for unittest
 
 
-import cStringIO
+import io
 import sys
 import os
 import shutil
@@ -169,8 +169,8 @@ class FlagsUnitTest(googletest.TestCase):
     assert 'numbers' in FLAGS.RegisteredFlags()
 
     # has_key
-    assert FLAGS.has_key('name')
-    assert not FLAGS.has_key('name2')
+    assert 'name' in FLAGS
+    assert 'name2' not in FLAGS
     assert 'name' in FLAGS
     assert 'name2' not in FLAGS
 
@@ -216,24 +216,24 @@ class FlagsUnitTest(googletest.TestCase):
     # Test integer argument passing
     argv = ('./program', '--x', '0x12345')
     argv = FLAGS(argv)
-    self.assertEquals(FLAGS.x, 0x12345)
-    self.assertEquals(type(FLAGS.x), int)
+    self.assertEqual(FLAGS.x, 0x12345)
+    self.assertEqual(type(FLAGS.x), int)
 
     argv = ('./program', '--x', '0x1234567890ABCDEF1234567890ABCDEF')
     argv = FLAGS(argv)
-    self.assertEquals(FLAGS.x, 0x1234567890ABCDEF1234567890ABCDEF)
-    self.assertEquals(type(FLAGS.x), long)
+    self.assertEqual(FLAGS.x, 0x1234567890ABCDEF1234567890ABCDEF)
+    self.assertEqual(type(FLAGS.x), int)
 
     # Treat 0-prefixed parameters as base-10, not base-8
     argv = ('./program', '--x', '012345')
     argv = FLAGS(argv)
-    self.assertEquals(FLAGS.x, 12345)
-    self.assertEquals(type(FLAGS.x), int)
+    self.assertEqual(FLAGS.x, 12345)
+    self.assertEqual(type(FLAGS.x), int)
 
     argv = ('./program', '--x', '0123459')
     argv = FLAGS(argv)
-    self.assertEquals(FLAGS.x, 123459)
-    self.assertEquals(type(FLAGS.x), int)
+    self.assertEqual(FLAGS.x, 123459)
+    self.assertEqual(type(FLAGS.x), int)
 
     argv = ('./program', '--x', '0x123efg')
     try:
@@ -314,7 +314,7 @@ class FlagsUnitTest(googletest.TestCase):
       for lst in lists:
         argv = ('./program', '--%s=%s' % (name, sep.join(lst)))
         argv = FLAGS(argv)
-        self.assertEquals(getattr(FLAGS, name), lst)
+        self.assertEqual(getattr(FLAGS, name), lst)
 
     # Test help text
     flagsHelp = str(FLAGS)
@@ -497,7 +497,7 @@ class FlagsUnitTest(googletest.TestCase):
       gflags.DEFINE_boolean("zoom1", 0, "runhelp z1", short_name='z')
       gflags.DEFINE_boolean("zoom2", 0, "runhelp z2", short_name='z')
       raise AssertionError("duplicate short flag detection failed")
-    except gflags.DuplicateFlag, e:
+    except gflags.DuplicateFlag as e:
       self.assertTrue("The flag 'z' is defined twice. " in e.args[0])
       self.assertTrue("First from" in e.args[0])
       self.assertTrue(", Second from" in e.args[0])
@@ -507,7 +507,7 @@ class FlagsUnitTest(googletest.TestCase):
       gflags.DEFINE_boolean("short1", 0, "runhelp s1", short_name='s')
       gflags.DEFINE_boolean("s", 0, "runhelp s2")
       raise AssertionError("duplicate mixed flag detection failed")
-    except gflags.DuplicateFlag, e:
+    except gflags.DuplicateFlag as e:
       self.assertTrue("The flag 's' is defined twice. " in e.args[0])
       self.assertTrue("First from" in e.args[0])
       self.assertTrue(", Second from" in e.args[0])
@@ -521,7 +521,7 @@ class FlagsUnitTest(googletest.TestCase):
     duplicate_flags = module_foo.DuplicateFlags(flagnames)
     try:
       original_flags.AppendFlagValues(duplicate_flags)
-    except gflags.DuplicateFlagError, e:
+    except gflags.DuplicateFlagError as e:
       self.assertTrue("flags_unittest" in str(e))
       self.assertTrue("module_foo" in str(e))
 
@@ -580,8 +580,8 @@ class FlagsUnitTest(googletest.TestCase):
                          allow_override=1)
     gflags.DEFINE_boolean("dup3", 1, "runhelp d32", short_name='u',
                          allow_override=1)
-    self.assert_(str(FLAGS).find('runhelp d31') == -1)
-    self.assert_(str(FLAGS).find('runhelp d32') != -1)
+    self.assertTrue(str(FLAGS).find('runhelp d31') == -1)
+    self.assertTrue(str(FLAGS).find('runhelp d32') != -1)
 
     # Make sure AppendFlagValues works
     new_flags = gflags.FlagValues()
@@ -782,12 +782,12 @@ class MultiNumericalFlagsTest(googletest.TestCase):
                              'float option that can occur multiple times',
                              short_name='mf')
     for (expected, actual) in zip(float_defaults, FLAGS.get('m_float', None)):
-      self.assertAlmostEquals(expected, actual)
+      self.assertAlmostEqual(expected, actual)
     argv = ('./program', '--m_float=-17', '--mf=2.78e9')
     FLAGS(argv)
     expected_floats = [-17.0, 2.78e9]
     for (expected, actual) in zip(expected_floats, FLAGS.get('m_float', None)):
-      self.assertAlmostEquals(expected, actual)
+      self.assertAlmostEqual(expected, actual)
 
   def testSingleValueDefault(self):
     """Test multi_int and multi_float flags with a single default value."""
@@ -800,8 +800,8 @@ class MultiNumericalFlagsTest(googletest.TestCase):
     gflags.DEFINE_multi_float('m_float1', float_default,
                              'float option that can occur multiple times')
     actual = FLAGS.get('m_float1', None)
-    self.assertEquals(1, len(actual))
-    self.assertAlmostEquals(actual[0], float_default)
+    self.assertEqual(1, len(actual))
+    self.assertAlmostEqual(actual[0], float_default)
 
   def testBadMultiNumericalFlags(self):
     """Test multi_int and multi_float flags with non-parseable values."""
@@ -866,7 +866,7 @@ class UnicodeFlagsTest(googletest.TestCase):
     gflags.DEFINE_list("non_unicode", ["abc", "def", "ghi"],
                       "help:\xC3\xAD".decode("utf-8"))
 
-    outfile = cStringIO.StringIO()
+    outfile = io.StringIO()
     FLAGS.WriteHelpInXMLFormat(outfile)
     actual_output = outfile.getvalue()
 
@@ -924,9 +924,9 @@ class LoadFromFlagFileTest(googletest.TestCase):
       tmp_flag_file_2 = open(tmp_path + '/UnitTestFile2.tst', 'w')
       tmp_flag_file_3 = open(tmp_path + '/UnitTestFile3.tst', 'w')
       tmp_flag_file_4 = open(tmp_path + '/UnitTestFile4.tst', 'w')
-    except IOError, e_msg:
-      print e_msg
-      print 'FAIL\n File Creation problem in Unit Test'
+    except IOError as e_msg:
+      print(e_msg)
+      print('FAIL\n File Creation problem in Unit Test')
       sys.exit(1)
 
     # put some dummy flags in our test files
@@ -971,8 +971,8 @@ class LoadFromFlagFileTest(googletest.TestCase):
     for file_name in self.files_to_delete:
       try:
         os.remove(file_name)
-      except OSError, e_msg:
-        print '%s\n, Problem deleting test file' % e_msg
+      except OSError as e_msg:
+        print('%s\n, Problem deleting test file' % e_msg)
   #end RemoveTestFiles def
 
   def _ReadFlagsFromFiles(self, argv, force_gnu):
@@ -1261,8 +1261,8 @@ class FlagsParsingTest(googletest.TestCase):
                         'nocommon': 'nocommon',
                         'common': 'common'}
 
-    for name, shorter in expected_results.iteritems():
-      self.assertEquals(shorter_flags[name], shorter)
+    for name, shorter in expected_results.items():
+      self.assertEqual(shorter_flags[name], shorter)
 
     self.flag_values.__delattr__('a')
     self.flag_values.__delattr__('abc')
@@ -1322,7 +1322,7 @@ class FlagsParsingTest(googletest.TestCase):
       argv = ('./program', '--nosuchflag', '--name=Bob', 'extra')
       self.flag_values(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'nosuchflag'
       assert e.flagvalue == '--nosuchflag'
 
@@ -1331,7 +1331,7 @@ class FlagsParsingTest(googletest.TestCase):
       argv = ('./program', '-w', '--name=Bob', 'extra')
       self.flag_values(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'w'
       assert e.flagvalue == '-w'
 
@@ -1340,7 +1340,7 @@ class FlagsParsingTest(googletest.TestCase):
       argv = ('./program', '--nosuchflagwithparam=foo', '--name=Bob', 'extra')
       self.flag_values(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'nosuchflagwithparam'
       assert e.flagvalue == '--nosuchflagwithparam=foo'
 
@@ -1366,7 +1366,7 @@ class FlagsParsingTest(googletest.TestCase):
               '--undefok=nosuchfla', 'extra')
       self.flag_values(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'nosuchflag'
 
     try:
@@ -1374,7 +1374,7 @@ class FlagsParsingTest(googletest.TestCase):
               '--undefok=nosuchflagg', 'extra')
       self.flag_values(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'nosuchflag'
 
     # Allow unknown short flag -w if specified with undefok
@@ -1409,7 +1409,7 @@ class FlagsParsingTest(googletest.TestCase):
               '--undefok=another_such', 'extra')
       self.flag_values(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'nosuchflag'
 
     # Make sure --undefok doesn't mask other option errors.
@@ -1458,7 +1458,7 @@ class NonGlobalFlagsTest(googletest.TestCase):
     try:
       argv = nonglobal_flags(argv)
       raise AssertionError("Unknown flag exception not raised")
-    except gflags.UnrecognizedFlag, e:
+    except gflags.UnrecognizedFlag as e:
       assert e.flagname == 'nosuchflag'
       pass
 
@@ -1491,7 +1491,7 @@ class NonGlobalFlagsTest(googletest.TestCase):
     flag_values = gflags.FlagValues()
     gflags.DEFINE_string('delattr_foo', default_value, 'A simple flag.',
                         flag_values=flag_values)
-    self.assertEquals(flag_values.delattr_foo, default_value)
+    self.assertEqual(flag_values.delattr_foo, default_value)
     flag_obj = flag_values['delattr_foo']
     # We also check that _FlagIsRegistered works as expected :)
     self.assertTrue(flag_values._FlagIsRegistered(flag_obj))
@@ -1934,11 +1934,11 @@ class FlagsErrorMessagesTest(googletest.TestCase):
     try:
       self.flag_values.__setattr__(flag_name, flag_value)
       raise AssertionError('Bounds exception not raised!')
-    except gflags.IllegalFlagValue, e:
+    except gflags.IllegalFlagValue as e:
       expected = ('flag --%(name)s=%(value)s: %(value)s is not %(suffix)s' %
                   {'name': flag_name, 'value': flag_value,
                    'suffix': expected_message_suffix})
-      self.assertEquals(str(e), expected)
+      self.assertEqual(str(e), expected)
 
 
 def main():

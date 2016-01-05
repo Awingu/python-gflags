@@ -63,10 +63,10 @@ class SimpleValidatorTest(googletest.TestCase):
 
     argv = ('./program')
     self.flag_values(argv)
-    self.assertEquals(None, self.flag_values.test_flag)
+    self.assertEqual(None, self.flag_values.test_flag)
     self.flag_values.test_flag = 2
-    self.assertEquals(2, self.flag_values.test_flag)
-    self.assertEquals([None, 2], self.call_args)
+    self.assertEqual(2, self.flag_values.test_flag)
+    self.assertEqual([None, 2], self.call_args)
 
   def testDefaultValueNotUsedSuccess(self):
     def Checker(x):
@@ -81,8 +81,8 @@ class SimpleValidatorTest(googletest.TestCase):
 
     argv = ('./program', '--test_flag=1')
     self.flag_values(argv)
-    self.assertEquals(1, self.flag_values.test_flag)
-    self.assertEquals([1], self.call_args)
+    self.assertEqual(1, self.flag_values.test_flag)
+    self.assertEqual([1], self.call_args)
 
   def testValidatorNotCalledWhenOtherFlagIsChanged(self):
     def Checker(x):
@@ -99,9 +99,9 @@ class SimpleValidatorTest(googletest.TestCase):
 
     argv = ('./program')
     self.flag_values(argv)
-    self.assertEquals(1, self.flag_values.test_flag)
+    self.assertEqual(1, self.flag_values.test_flag)
     self.flag_values.other_flag = 3
-    self.assertEquals([1], self.call_args)
+    self.assertEqual([1], self.call_args)
 
   def testExceptionRaisedIfCheckerFails(self):
     def Checker(x):
@@ -119,9 +119,9 @@ class SimpleValidatorTest(googletest.TestCase):
     try:
       self.flag_values.test_flag = 2
       raise AssertionError('gflags.IllegalFlagValue expected')
-    except gflags.IllegalFlagValue, e:
-      self.assertEquals('flag --test_flag=2: Errors happen', str(e))
-    self.assertEquals([1, 2], self.call_args)
+    except gflags.IllegalFlagValue as e:
+      self.assertEqual('flag --test_flag=2: Errors happen', str(e))
+    self.assertEqual([1, 2], self.call_args)
 
   def testExceptionRaisedIfCheckerRaisesException(self):
     def Checker(x):
@@ -141,9 +141,9 @@ class SimpleValidatorTest(googletest.TestCase):
     try:
       self.flag_values.test_flag = 2
       raise AssertionError('gflags.IllegalFlagValue expected')
-    except gflags.IllegalFlagValue, e:
-      self.assertEquals('flag --test_flag=2: Specific message', str(e))
-    self.assertEquals([1, 2], self.call_args)
+    except gflags.IllegalFlagValue as e:
+      self.assertEqual('flag --test_flag=2: Specific message', str(e))
+    self.assertEqual([1, 2], self.call_args)
 
   def testErrorMessageWhenCheckerReturnsFalseOnStart(self):
     def Checker(x):
@@ -160,9 +160,9 @@ class SimpleValidatorTest(googletest.TestCase):
     try:
       self.flag_values(argv)
       raise AssertionError('gflags.IllegalFlagValue expected')
-    except gflags.IllegalFlagValue, e:
-      self.assertEquals('flag --test_flag=1: Errors happen', str(e))
-    self.assertEquals([1], self.call_args)
+    except gflags.IllegalFlagValue as e:
+      self.assertEqual('flag --test_flag=1: Errors happen', str(e))
+    self.assertEqual([1], self.call_args)
 
   def testErrorMessageWhenCheckerRaisesExceptionOnStart(self):
     def Checker(x):
@@ -179,9 +179,9 @@ class SimpleValidatorTest(googletest.TestCase):
     try:
       self.flag_values(argv)
       raise AssertionError('IllegalFlagValue expected')
-    except gflags.IllegalFlagValue, e:
-      self.assertEquals('flag --test_flag=1: Specific message', str(e))
-    self.assertEquals([1], self.call_args)
+    except gflags.IllegalFlagValue as e:
+      self.assertEqual('flag --test_flag=1: Specific message', str(e))
+    self.assertEqual([1], self.call_args)
 
   def testValidatorsCheckedInOrder(self):
 
@@ -195,11 +195,11 @@ class SimpleValidatorTest(googletest.TestCase):
 
     self.calls = []
     self._DefineFlagAndValidators(Required, Even)
-    self.assertEquals(['Required', 'Even'], self.calls)
+    self.assertEqual(['Required', 'Even'], self.calls)
 
     self.calls = []
     self._DefineFlagAndValidators(Even, Required)
-    self.assertEquals(['Even', 'Required'], self.calls)
+    self.assertEqual(['Even', 'Required'], self.calls)
 
   def _DefineFlagAndValidators(self, first_validator, second_validator):
     local_flags = gflags.FlagValues()

@@ -35,7 +35,7 @@ __author__ = 'salcianu@google.com (Alex Salcianu)'
 
 
 import string
-import StringIO
+import io
 import sys
 import xml.dom.minidom
 import xml.sax.saxutils
@@ -96,7 +96,7 @@ class WriteFlagHelpInXMLFormatTest(googletest.TestCase):
   def _CheckFlagHelpInXML(self, flag_name, module_name,
                           expected_output, is_key=False):
     # StringIO.StringIO is a file object that writes into a memory string.
-    sio = StringIO.StringIO()
+    sio = io.StringIO()
     flag_obj = self.fv[flag_name]
     flag_obj.WriteInfoInXMLFormat(sio, module_name, is_key=is_key, indent=' ')
     self.assertMultiLineEqual(sio.getvalue(), expected_output)
@@ -496,7 +496,7 @@ class WriteHelpInXMLFormatTest(googletest.TestCase):
     gflags.DECLARE_key_flag('tmod_bar_u', flag_values=fv)
 
     # Generate flag help in XML format in the StringIO sio.
-    sio = StringIO.StringIO()
+    sio = io.StringIO()
     fv.WriteHelpInXMLFormat(sio)
 
     # Check that we got the expected result.
